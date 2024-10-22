@@ -1,0 +1,64 @@
+import random
+
+def create_board(n):
+    board = list(range(n))
+    random.shuffle(board)
+    return board
+
+def calculate_conflicts(board):
+    conflicts = 0
+    n = len(board)
+    
+    for i in range(n):
+        for j in range(i + 1, n):
+            if board[i] == board[j]: 
+                conflicts += 1
+            if abs(board[i] - board[j]) == abs(i - j): 
+                conflicts += 1
+    return conflicts
+
+def find_min_conflict_move(board, col):
+    n = len(board)
+    min_conflict = float('inf')
+    best_row = board[col]
+    
+    for row in range(n):
+        board[col] = row
+        conflicts = calculate_conflicts(board)
+        if conflicts < min_conflict:
+            min_conflict = conflicts
+            best_row = row
+    
+    board[col] = best_row 
+
+def solve_n_queens_with_hill_climbing(n, max_steps=1000):
+    board = create_board(n)
+    for step in range(max_steps):
+        conflicts = calculate_conflicts(board)
+        if conflicts == 0:
+            return board  
+        
+        col = random.randint(0, n - 1)
+        find_min_conflict_move(board, col)
+    
+    return None  
+
+def print_solution(board):
+    n = len(board)
+    for row in range(n):
+        line = ""
+        for col in range(n):
+            if board[col] == row:
+                line += " Q "
+            else:
+                line += " . "
+        print(line)
+    print("\n")
+
+solution = solve_n_queens_with_hill_climbing(8)
+
+if solution:
+    print("راه‌حل پیدا شد:")
+    print_solution(solution)
+else:
+    print("راه‌حلی پیدا نشد.")
