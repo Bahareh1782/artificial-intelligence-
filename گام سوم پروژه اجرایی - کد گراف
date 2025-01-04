@@ -1,0 +1,70 @@
+import cv2
+import numpy as np
+
+# 1. ورود تصویر - حالت اولیه
+def load_image(file_path):
+    image = cv2.imread(file_path)
+    if image is None:
+        raise FileNotFoundError("تصویر پیدا نشد.")
+    return image
+
+# 2. پیش‌پردازش با دو حالت
+def preprocess_image(image, mode='correct'):
+    if mode == 'correct':
+        # حالت صحیح: اعمال فیلتر برای بهبود کیفیت
+        return cv2.GaussianBlur(image, (5, 5), 0)
+    elif mode == 'needs_repeat':
+        # حالت نیاز به تکرار: تبدیل به خاکستری
+        return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    else:
+        raise ValueError("حالت پیش‌پردازش نامعتبر است.")
+
+# 3. بخش‌بندی با دو حالت
+def segment_image(image, mode='correct'):
+    if mode == 'correct':
+        # اعمال بخش‌بندی ساده
+        _, segmented = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY)
+        return segmented
+    elif mode == 'needs_fix':
+        # حالت نیاز به اصلاح: اعمال روش پیشرفته‌تر
+        return cv2.Canny(image, 100, 200)
+    else:
+        raise ValueError("حالت بخش‌بندی نامعتبر است.")
+
+# 4. استخراج ویژگی‌ها با دو حالت
+def extract_features(image, mode='correct'):
+    if mode == 'correct':
+        # استخراج ویژگی‌های ساده مانند مساحت
+        return {"area": np.sum(image > 0)}
+    elif mode == 'needs_repeat':
+        # استخراج ویژگی‌های پیچیده‌تر
+        return {"edges": np.sum(cv2.Canny(image, 100, 200) > 0)}
+    else:
+        raise ValueError("حالت استخراج ویژگی‌ها نامعتبر است.")
+
+# 5. طبقه‌بندی با دو حالت
+def classify(features, mode='correct'):
+    if mode == 'correct':
+        # طبقه‌بندی ساده
+        return "Class A" if features["area"] > 1000 else "Class B"
+    elif mode == 'needs_fix':
+        # طبقه‌بندی پیچیده‌تر
+        return "Complex Class" if features.get("edges", 0) > 500 else "Simple Class"
+    else:
+        raise ValueError("حالت طبقه‌بندی نامعتبر است.")
+
+# 6. تشخیص نهایی
+def final_decision(classification):
+    print(f"تصمیم نهایی: {classification}")
+
+# استفاده از کد
+file_path = "your_image_path.jpg"  # مسیر تصویر را مشخص کنید
+try:
+    image = load_image(file_path)
+    preprocessed = preprocess_image(image, mode='correct')
+    segmented = segment_image(preprocessed, mode='correct')
+    features = extract_features(segmented, mode='correct')
+    classification = classify(features, mode='correct')
+    final_decision(classification)
+except Exception as e:
+    print(f"خطا: {e}")
